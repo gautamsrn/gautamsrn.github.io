@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>{% include head.html %}</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header wrap">
+<a class="wordmark" href="{{ '/' | relative_url }}" aria-label="{{ site.author | escape }} home"><span class="monogram" aria-hidden="true">g<span>.</span></span><span><span class="wordmark-name">{{ site.author }}</span><span class="wordmark-name-short" aria-hidden="true">Gautam S N</span><span class="wordmark-sub">SOLUTIONS ACROSS DISCIPLINES</span></span></a>
+<nav aria-label="Main navigation">
+<a href="{{ '/' | relative_url }}" {% if page.url == '/' %}aria-current="page"{% endif %}>Home</a>
+<a href="{{ '/projects/' | relative_url }}" {% if page.url contains '/projects/' %}aria-current="page"{% endif %}>Projects & Experience</a>
+<a href="{{ '/blog/' | relative_url }}" {% if page.url contains '/blog/' %}aria-current="page"{% endif %}>Thoughts & Notes</a>
+<a href="{{ '/about/' | relative_url }}" {% if page.url == '/about/' %}aria-current="page"{% endif %}>About</a>
+<a class="nav-contact" href="https://www.linkedin.com/in/gautamsnair/">LinkedIn &nearr;</a>
+</nav>
+</header>
+<main id="main" tabindex="-1">{{ content }}</main>
+<footer class="site-footer wrap">
+<div>
+<a class="footer-name" href="{{ '/' | relative_url }}">Gautam Sreenarayanan Nair</a>
+<p>Connecting mechanical engineering, software, robotics, data, and AI systems.</p>
+</div>
+<div class="footer-links">
+<a href="https://github.com/gautamsrn">GitHub &nearr;</a>
+<a href="https://www.linkedin.com/in/gautamsnair/">LinkedIn &nearr;</a>
+<a href="{{ '/privacy/' | relative_url }}">Privacy</a></div>
+<small>&copy; {{ 'now' | date: '%Y' }} {{ site.author }}</small></footer>
+{% include analytics.html %}
+</body></html>

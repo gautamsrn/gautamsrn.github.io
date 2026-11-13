@@ -1,0 +1,8 @@
+<article class="post-row">
+<div><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: '%b %d, %Y' }}</time>{% if post.category %}<span class="eyebrow">{{ post.category }}</span>{% endif %}</div>
+<div>
+<h3>
+<a href="{{ post.url | relative_url }}">{{ post.title }} &nearr;</a></h3>
+<p>{{ post.description | default: post.excerpt | strip_html }}</p>
+</div>
+</article>

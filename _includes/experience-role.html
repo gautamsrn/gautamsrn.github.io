@@ -1,0 +1,37 @@
+{% assign employer = include.employer %}
+{% assign role_anchor = employer.anchor %}
+{% if include.grouped %}{% assign role_anchor = employer.experience_id %}{% endif %}
+{% assign work_projects = site.projects | where: 'work', true | where: 'experience_id', employer.experience_id | sort: 'order' %}
+<section class="employer-group" id="{{ role_anchor }}" data-project-group aria-labelledby="{{ role_anchor }}-title">
+  <div class="experience-overview"{% if employer.standalone %} data-category="{{ employer.category | escape }}" data-search="{{ employer.label | escape }} {{ employer.company | escape }} {{ employer.role | escape }} {{ employer.period | escape }} {{ employer.summary | escape }} {{ employer.tags | join: ' ' | escape }}"{% endif %}>
+    <div class="employer-heading">
+      <div>
+        {% if include.grouped %}
+        <h4 id="{{ role_anchor }}-title">{{ employer.role }}{% if employer.current %}<span class="employer-label">Current role</span>{% endif %}</h4>
+        {% else %}
+        <h3 id="{{ role_anchor }}-title">{{ employer.label }}{% if employer.current %}<span class="employer-label">Current role</span>{% endif %}</h3>
+        <p>{{ employer.role }}</p>
+        {% endif %}
+        {% if employer.organization %}<p>{{ employer.organization }}</p>{% endif %}
+        {% if employer.location %}<p>{{ employer.location | escape }}</p>{% endif %}
+      </div>
+      <p class="employment-period">{{ employer.period }}</p>
+    </div>
+    <p class="work-intro">{{ employer.summary }}</p>
+  </div>
+  {% if work_projects.size > 0 and include.compact %}
+  <ul class="work-topics" aria-label="{{ employer.label | escape }}: {{ employer.role | escape }} work areas">
+    {% for project in work_projects %}<li><a href="{{ project.url | relative_url }}"><span>{{ project.title }}</span><span aria-hidden="true">&nearr;</span></a></li>{% endfor %}
+  </ul>
+  {% elsif work_projects.size > 0 %}
+  <div class="project-grid work-grid">{% for project in work_projects %}{% include project-card.html %}{% endfor %}</div>
+  {% elsif employer.links %}
+  <ul class="work-topics" aria-label="{{ employer.label | escape }} projects">
+    {% for link in employer.links %}<li><a href="{{ link.url | relative_url }}"><span>{{ link.label }}</span><span aria-hidden="true">&nearr;</span></a></li>{% endfor %}
+  </ul>
+  {% elsif employer.topics %}
+  <ul class="work-topics work-topics-static" aria-label="{{ employer.label | escape }} areas of work">
+    {% for topic in employer.topics %}<li><span>{{ topic }}</span></li>{% endfor %}
+  </ul>
+  {% endif %}
+</section>
