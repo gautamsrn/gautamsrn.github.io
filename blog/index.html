@@ -1,0 +1,18 @@
+---
+title: Thoughts & Notes
+description: My thoughts & notes on technology, business and a little bit of philosophy, and the questions that connect them.
+---
+<section class="wrap section blog-page">
+<header class="page-heading">
+<p class="eyebrow">TECHNOLOGY, BUSINESS &amp; A LITTLE PHILOSOPHY</p>
+<h1>My <em>thoughts &amp; notes.</em></h1>
+<p>This is where I explore ideas and questions about technology, business, and a little philosophy—especially the connections between them. Some are still taking shape, and they don't have to be fully formed opinions.</p>
+<p>My perspective may change as I learn. Writing helps me examine ideas, refine my thinking, and return to them over time.</p>
+<p>If you see something differently, <a href="https://www.linkedin.com/in/gautamsnair/">I'd enjoy hearing your perspective on LinkedIn</a>.</p>
+</header>{% if site.posts.size > 0 %}<div class="post-list">{% for post in site.posts %}{% include post-row.html %}{% endfor %}</div>{% else %}<div class="notebook-empty"><span class="notebook-mark" aria-hidden="true">[ / ]</span>
+<div>
+<p class="eyebrow">A SPACE TO THINK</p>
+<h2>No entries yet.</h2>
+<p>I'll add my thoughts here as I write them.</p>
+<a class="text-link" href="{{ '/projects/' | relative_url }}">Explore my projects in the meantime &nearr;</a></div>
+</div>{% endif %}</section>

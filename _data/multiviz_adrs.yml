@@ -1,0 +1,155 @@
+repository: https://github.com/SwarajMundruppadyRao/Multi-Viz-A-ROS2-based-GUI-for-Multi-Robot-Coordination
+branch: main
+revision: c64437368a6f88c30c5a7a3f6b2f1075749210ea
+records:
+  - id: ADR-001
+    title: Integrate ROS callbacks into the Qt event loop
+    decision: Use a Qt timer to process ROS callbacks without starting a separate ROS worker thread.
+    context: >-
+      The interface needs to respond to operator input while receiving robot
+      telemetry. Qt runs its own event loop, while ROS subscriptions need an
+      executor to dispatch incoming messages. The two event-processing mechanisms
+      need to coexist within the desktop application.
+    drivers: |
+      - Keep controls, camera images, and telemetry in one desktop interface.
+      - Update Qt widgets from the GUI thread.
+      - Avoid blocking the application while waiting for ROS messages.
+    alternatives: |
+      - **Run a blocking ROS spin on the GUI thread:** Dispatches ROS callbacks, but prevents Qt from processing its own events.
+      - **Use a separate ROS worker thread:** Separates callback work from rendering, but requires coordination and signals to update GUI widgets.
+      - **Process ROS through a Qt timer (chosen):** Call a non-waiting ROS spin periodically from the existing GUI event loop.
+    rationale: >-
+      RobotMonitorUI creates a ROS node and starts a QTimer with a 50 ms interval.
+      Each timer event calls rclpy.spin_once with timeout_sec=0. ROS callbacks
+      then update the odometry, laser, and camera widgets directly. This keeps
+      event dispatch and widget updates within the same thread, using Qt's
+      event loop to schedule ROS processing.
+    consequences: |
+      - **Benefit:** GUI callbacks and ROS callbacks share one execution context, simplifying widget updates.
+      - **Benefit:** The spin call does not wait for new messages when no callback is ready.
+      - **Tradeoff:** A callback still runs to completion; image conversion or other lengthy work can delay user input and rendering.
+      - **Tradeoff:** The 50 ms timer interval is a scheduling choice, not a guaranteed telemetry update rate or latency bound.
+    sources:
+      - label: ROS node creation and timer setup
+        path: HRI_final_project_GUI/ros2ply.py#L13-L34
+      - label: Qt timer and non-waiting ROS spin
+        path: HRI_final_project_GUI/ros2ply.py#L358-L366
+      - label: Callbacks update telemetry and camera widgets
+        path: HRI_final_project_GUI/ros2ply.py#L369-L400
+
+  - id: ADR-002
+    title: Route a shared control panel through robot namespaces
+    decision: Reuse one telemetry and control panel, recreating its ROS subscriptions and publisher when the selected robot changes.
+    context: >-
+      Several robots expose the same kinds of telemetry and accept the same
+      velocity-command message. The interface needs to direct operator input
+      to a particular robot and show that robot's data without duplicating
+      the complete set of widgets for every robot.
+    drivers: |
+      - Make the selected robot explicit to the operator.
+      - Reuse the same controls and data views across robots.
+      - Keep each robot's topics distinct within the ROS graph.
+    alternatives: |
+      - **Give every robot a complete panel:** Shows multiple detailed views simultaneously, with duplicated widgets and more screen space required.
+      - **Subscribe to every robot and select cached data:** Allows faster switching and fleet-wide state retention, with additional subscriptions and per-robot state management.
+      - **Rebind topics on selection (chosen):** Maintain one active set of subscriptions and one velocity publisher for the selected namespace.
+    rationale: >-
+      The robot selector contains four configured namespaces, waffle_1 through
+      waffle_4. Selection calls change_namespace, which updates the namespace
+      and reinitializes ROS topics. That routine destroys existing subscriptions
+      and the velocity publisher, then creates replacements under the selected
+      namespace for odometry, laser scans, camera images, and velocity commands.
+    consequences: |
+      - **Benefit:** Robot-specific topic names are assembled in one place while the widgets remain shared.
+      - **Benefit:** The active set of ROS endpoints follows the selected robot.
+      - **Tradeoff:** Detailed telemetry covers one selected robot at a time, rather than maintaining a live data view for the whole fleet.
+      - **Tradeoff:** Changing the robot list or topic conventions requires configuration changes; old widget values are not explicitly cleared during selection.
+      - **Tradeoff:** Selection changes the command destination but does not send a stop command to the previously selected robot.
+    sources:
+      - label: Configured robot namespaces
+        path: HRI_final_project_GUI/ros2ply.py#L13-L19
+      - label: Robot-selection signal
+        path: HRI_final_project_GUI/ros2ply.py#L168-L177
+      - label: Destroy and recreate namespaced ROS endpoints
+        path: HRI_final_project_GUI/ros2ply.py#L321-L356
+      - label: Namespace switching and selection handler
+        path: HRI_final_project_GUI/ros2ply.py#L430-L457
+
+  - id: ADR-003
+    title: Use ROS messages as the interface to robot systems
+    decision: Receive telemetry through ROS subscriptions and send manual velocity commands as Twist messages.
+    context: >-
+      MultiViz brings motion controls and sensor feedback into the same
+      application. Connecting those features through ROS messages gives
+      the GUI an integration boundary with robot software rather than
+      embedding simulator-specific control calls in its buttons.
+    drivers: |
+      - Receive odometry, laser scans, and camera images through defined message types.
+      - Send linear and angular velocity commands through the robot's ROS interface.
+      - Convert sensor messages into a form that Qt widgets can display.
+    alternatives: |
+      - **Call a simulator API directly:** Gives direct access to that simulator, with GUI behavior tied to its API.
+      - **Add a custom communication bridge:** Allows a separate transport or client, but introduces another protocol and service to maintain.
+      - **Use ROS topics and messages (chosen):** Subscribe to robot telemetry and publish velocity commands through the ROS graph.
+    rationale: >-
+      The ROS-connected interface subscribes to Odometry, LaserScan, and Image
+      messages and publishes Twist commands. Camera messages pass through
+      CvBridge, QImage, and QPixmap before display. Direction buttons publish
+      configured linear or angular velocities; the stop handler publishes a
+      zero-valued Twist. These paths connect the GUI to named ROS topics
+      without directly invoking a Gazebo control API.
+    consequences: |
+      - **Benefit:** Robot software can provide the same message interfaces in simulation or on hardware.
+      - **Benefit:** Telemetry conversion and command publication have explicit boundaries in the GUI code.
+      - **Tradeoff:** Integration still depends on compatible topic names, encodings, communication settings, and robot-side command handling.
+      - **Tradeoff:** The command display records what the GUI publishes; it does not acknowledge execution by the robot.
+      - **Tradeoff:** The scan widget shows a small numeric sample, rather than visualizing the complete laser scan.
+    sources:
+      - label: Telemetry subscriptions and velocity publisher
+        path: HRI_final_project_GUI/ros2ply.py#L331-L356
+      - label: Telemetry callbacks and camera conversion
+        path: HRI_final_project_GUI/ros2ply.py#L369-L400
+      - label: Velocity publication and stop command
+        path: HRI_final_project_GUI/ros2ply.py#L403-L428
+      - label: Direction-button velocity values
+        path: HRI_final_project_GUI/ros2ply.py#L459-L473
+
+  - id: ADR-004
+    title: Keep a simulated-data interface alongside ROS integration
+    decision: Maintain a standalone Qt template with generated data as well as the ROS-connected GUI.
+    context: >-
+      Interface layout and interaction can be explored without waiting for
+      running robots or a complete simulation. The repository contains both
+      a standalone Qt template and a version connected to ROS, allowing the
+      interface to be examined independently of robot telemetry.
+    drivers: |
+      - Exercise interface layout without requiring a running ROS system.
+      - Provide changing sample values for telemetry widgets.
+      - Keep the distinction between interface prototypes and implemented robot integration visible.
+    alternatives: |
+      - **Develop only against live ROS data:** Exercises real message paths, but makes interface exploration depend on an available robot or simulation.
+      - **Add a mock-data mode to one application:** Shares layout code, with additional mode handling inside the application.
+      - **Keep separate template and ROS-connected scripts (chosen):** Run the template with generated values, and the integrated script against ROS topics.
+    rationale: >-
+      Template.py creates the Qt interface and uses a timer to generate battery,
+      velocity, odometry, laser, and image values. The separate ros2ply.py script
+      creates a ROS node and connects telemetry and command handlers to topics.
+      It also retains prototype elements in the integrated
+      script: battery levels are simulated, the map view is a placeholder,
+      and waypoint entry logs input without implementing navigation.
+    consequences: |
+      - **Benefit:** The standalone template can exercise layout and basic interactions without ROS telemetry.
+      - **Benefit:** The repository exposes both the generated-data interface and the actual ROS message paths for inspection.
+      - **Tradeoff:** The two scripts duplicate layout code, so interface changes can drift between them.
+      - **Tradeoff:** Generated values do not validate message delivery, robot response, or navigation; the public snapshot's placeholders should not be treated as completed integrations.
+    sources:
+      - label: Standalone template and update timer
+        path: HRI_final_project_GUI/Template.py#L1-L26
+      - label: Generated telemetry and image data
+        path: HRI_final_project_GUI/Template.py#L251-L270
+      - label: Map placeholder and simulated battery timer
+        path: HRI_final_project_GUI/ros2ply.py#L269-L319
+      - label: Simulated battery updates
+        path: HRI_final_project_GUI/ros2ply.py#L435-L454
+      - label: Waypoint input without a navigation implementation
+        path: HRI_final_project_GUI/ros2ply.py#L475-L481

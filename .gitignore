@@ -1,0 +1,34 @@
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+.bundle/
+vendor/
+.preview/
+reference-materials/
+_drafts/
+AGENTS.md
+docs/career-strategy.md
+
+# Reference document; keep out of the public repository.
+Resume_Gautam_Sreenarayanan_Nair.pdf
+gautamsn_project4.pdf
+
+# Local credentials and settings.
+.env
+.env.*
+!.env.example
+!.env.sample
+.aws/
+.ssh/
+.codex/
+.agents/
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

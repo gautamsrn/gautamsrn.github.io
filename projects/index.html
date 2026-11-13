@@ -1,0 +1,33 @@
+---
+title: Projects
+description: Projects and professional work by Gautam Sreenarayanan Nair, covering robotics, software, product design, data, and manufacturing.
+---
+<section class="wrap section">
+<header class="page-heading">
+<p class="eyebrow">PROJECTS &amp; EXPERIMENTS</p>
+<h1>A closer look<br><em>at the work.</em></h1>
+<p>My projects and professional work span robotics, product design, software, data, and manufacturing. Here's what I worked on and why.</p>
+</header>
+<div class="project-discovery" hidden data-project-discovery>
+  <form class="project-search" role="search" data-project-search>
+    <label for="project-query">Search projects and experience</label>
+    <div class="search-row"><div class="search-field"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" id="project-query" placeholder="Search a project, technology, or company" autocomplete="off" data-project-query></div><button type="button" class="filter-reset" data-project-reset hidden>Reset search &amp; filters</button></div>
+  </form>
+  <div class="filters" data-project-filters role="group" aria-label="Filter projects and experience"><button type="button" aria-pressed="true" data-filter="all">All work</button>{% assign project_categories = site.projects | map: 'category' %}{% assign experience_categories = site.data.employers | where: 'standalone', true | map: 'category' %}{% assign categories = project_categories | concat: experience_categories | uniq | sort %}{% for category in categories %}<button type="button" aria-pressed="false" data-filter="{{ category | escape }}">{{ category }}</button>{% endfor %}</div>
+</div>
+{% assign standalone_experiences = site.data.employers | where: 'standalone', true | size %}
+<p class="result-count" data-project-count aria-live="polite" aria-atomic="true">{{ site.projects.size | plus: standalone_experiences }} results</p>
+<div class="project-empty" hidden data-project-empty><p class="eyebrow">NO MATCHES</p><h2>Try another search.</h2><p>No projects or experience entries match this search. Try another term or reset the filters.</p><button type="button" class="button" data-project-reset>Show all work <span aria-hidden="true">&rarr;</span></button></div>
+<section data-project-group class="independent-projects">
+<div class="section-heading"><h2>Projects &amp; experiments</h2></div>
+{% assign projects = site.projects | where_exp: 'project', 'project.work != true' %}
+{% assign shared_projects = site.projects | where: 'show_in_projects', true %}
+{% assign projects = projects | concat: shared_projects | uniq | sort: 'order' %}
+{% assign quick_projects = projects | where_exp: 'project', 'project.media.duration == "1 min"' %}
+{% assign other_projects = projects | where_exp: 'project', 'project.media.duration != "1 min"' %}
+{% assign projects = quick_projects | concat: other_projects %}
+<div class="project-grid">{% for project in projects %}{% include project-card.html as_project=true %}{% endfor %}</div>
+<p class="project-catalog-note">I'm continuing to document other projects I've worked on and will add them here over time.</p>
+</section>
+{% include work-experience.html %}
+</section>

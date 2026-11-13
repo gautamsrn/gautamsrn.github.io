@@ -1,0 +1,24 @@
+{% if media.type == 'embed' %}
+  {% if include.card %}
+  <a class="video-cover" href="{{ project.url | relative_url }}" aria-label="Explore {{ project.title | escape }}"{% if media.src contains 'https://www.youtube-nocookie.com/embed/' or media.src contains 'https://www.youtube.com/embed/' %} data-video-preview="{{ media.src | escape }}"{% endif %}>
+    <img class="project-media" src="{{ media.poster | relative_url | escape }}" alt="{{ media.alt | escape }}" loading="lazy">
+    <span class="play-badge"><span aria-hidden="true">&#9654;</span> <span data-preview-label>Click to learn more</span></span>
+    {% if media.duration %}<span class="media-duration">{{ media.duration | escape }}</span>{% endif %}
+  </a>
+  {% else %}
+  <iframe class="embedded-video" src="{{ media.src | escape }}" title="{{ media.alt | default: 'Project demonstration' | escape }}" loading="lazy" allow="fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  {% endif %}
+{% elsif media.type == 'video' %}
+<video class="project-media" controls playsinline preload="metadata" {% if media.poster %}poster="{{ media.poster | relative_url | escape }}"{% endif %} aria-label="{{ media.alt | default: 'Project demonstration' | escape }}">
+  <source src="{{ media.src | relative_url | escape }}" type="{{ media.mime | default: 'video/mp4' | escape }}">
+  {% if media.captions %}<track kind="captions" src="{{ media.captions | relative_url | escape }}" srclang="en" label="English" default>{% endif %}
+  Your browser does not support this video. <a href="{{ media.src | relative_url | escape }}">Download the demonstration</a>.
+</video>
+{% elsif media.type == 'gif' %}
+<details class="gif-player">
+  <summary>{% if media.poster %}<img src="{{ media.poster | relative_url | escape }}" alt="{{ media.alt | escape }}" loading="lazy">{% else %}<span class="gif-cover">{{ media.alt | default: 'Animated project demonstration' | escape }}</span>{% endif %}<span class="gif-toggle">Play GIF / close to hide</span></summary>
+  <img class="project-media" src="{{ media.src | relative_url | escape }}" alt="{{ media.alt | escape }}" loading="lazy">
+</details>
+{% else %}
+<img class="project-media" src="{{ media.src | relative_url | escape }}" alt="{{ media.alt | escape }}" loading="lazy" decoding="async">
+{% endif %}

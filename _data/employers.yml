@@ -1,0 +1,80 @@
+- company: The Goodyear Tire & Rubber Company
+  label: Goodyear
+  anchor: goodyear
+  experience_id: goodyear-current
+  role: Engineer Associate - Virtual Tire Development
+  period: Jun 2025 - Present
+  current: true
+  company_links:
+    - url: https://www.goodyear.com/en-us/about-us
+      label: About Goodyear
+    - url: https://corporate.goodyear.com/us/en/products-and-innovations.html
+      label: Goodyear products & innovations
+  summary: I combine physics-based modeling, including finite element analysis (FEA) and mathematical modeling, with machine learning to develop virtual models of manufacturing processes. My work covers different stages of manufacturing, from extrusion to curing, with the goal of reducing physical iterations and improving manufacturing capability.
+- company: University of Maryland - College Park
+  label: Terrapin Works
+  organization: University of Maryland - College Park
+  anchor: terrapin-works
+  experience_id: terrapin-works
+  role: Lab Technician - Additive Manufacturing
+  period: Jan 2024 - May 2025
+  category: Additive manufacturing
+  tags: [2PP, SLA, FDM, Manufacturing, Machine maintenance]
+  summary: I handled manufacturing and machine maintenance in the Research & Prototyping Lab at Terrapin Works, using 2PP, SLA, and FDM additive manufacturing techniques.
+  topics: [Research & Prototyping Lab, Two-photon polymerization / Stereolithography / Fused deposition modeling, Manufacturing & machine maintenance, Customer support & training]
+- company: The Goodyear Tire & Rubber Company
+  label: Goodyear
+  anchor: goodyear-internship
+  experience_id: goodyear-internship
+  role: Summer Intern - Virtual Capability
+  period: May 2024 - Aug 2024
+  summary: I used statistics and machine learning to derive manufacturing specifications from tire designs. I also worked on optimization in an off road tire CFD based prediction model.
+- company: MRF Tyres
+  label: MRF Tyres
+  anchor: mrf
+  experience_id: mrf
+  role: Engineer Technical - Truck & Light Truck Radial Tires
+  period: Oct 2020 - Apr 2023
+  summary: I developed truck and light-truck radial tires across their lifecycle, from requirements and design through testing, homologation, industrialization, and end of life. Working with automotive OEMs and manufacturing plants, I resolved product issues through design and process changes, balancing tire performance and cost. I also worked on initiatives to improve production yield.
+- company: Earth Fokus
+  label: Earth Fokus
+  anchor: earth-fokus
+  experience_id: earth-fokus
+  role: Product Development Intern & Senior Year Project
+  period: Dec 2019 - Dec 2020
+  category: Product development
+  tags: [IoT, Sensors, PCB design, Market research, Product development, System Design]
+  summary: I designed and developed an IoT-based trashcan to help reduce food waste in corporate offices. My work included market research, sensor calibration, circuit board design, and the complete IoT system architecture.
+  links:
+    - label: IoT-based trashcan to reduce food waste
+      url: /projects/iot-food-waste/
+- company: Ford Motor Company
+  label: Ford Motor Company
+  anchor: ford
+  experience_id: ford
+  role: Summer Intern
+  period: May 2019 - Aug 2019
+  category: Manufacturing
+  tags: [Point cloud data, Digital Twin]
+  summary: I interned with the Digital Factory Team in Power Train Manufacturing Engineering, where I worked on digitizing manufacturing plants using CAD and point cloud data.
+  topics: [Digital Factory Team, CAD & point cloud data, Manufacturing plant digitization, Digital Twin]
+- company: Preethi Kitchen Appliances
+  label: Preethi Kitchen Appliances
+  anchor: preethi
+  experience_id: preethi
+  role: Industrial Project - Internship
+  period: Aug 2018 - Feb 2019
+  location: Chennai, Tamil Nadu, India
+  category: Product development
+  tags: [LPG gas burner, Design, CNC machining, Manufacturing, Experimental testing, Heat loss]
+  summary: Designed a novel, highly efficient stove-top LPG gas burner that was CNC manufactured. Conducted experimental testing to identify prominent heat loss areas, which was then used as the basis for the new designs.
+- company: AIESEC
+  label: AIESEC
+  anchor: aiesec
+  experience_id: aiesec
+  role: International Volunteer - China
+  period: May 2017 - Jun 2017
+  category: Community & volunteering
+  tags: [International volunteer, Primary schools, Cross-cultural relationships, UN SDG 11, Sustainable Cities and Communities]
+  summary: I volunteered in primary schools in China to encourage cross-cultural understanding, supporting UN SDG 11, Sustainable Cities and Communities.
+  topics: [Primary schools in China, Cross-cultural relationships, UN SDG 11]

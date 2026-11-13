@@ -1,0 +1,4 @@
+{% assign cloudflare_token = site.analytics.cloudflare_token | default: '' | strip %}
+{% if jekyll.environment == 'production' and cloudflare_token != '' %}
+<script type="module" src="{{ '/assets/js/traffic.js' | relative_url }}?v={{ site.time | date: '%s' }}" data-portfolio-traffic data-cloudflare-token="{{ cloudflare_token | escape }}" data-site-url="{{ site.url | escape }}"></script>
+{% endif %}

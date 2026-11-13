@@ -1,0 +1,28 @@
+{% assign adr_collection = include.adrs %}
+{% assign adr_source_base = adr_collection.repository | append: '/blob/' | append: adr_collection.revision | append: '/' %}
+<div class="adr-list">
+  {% for record in adr_collection.records %}
+  <details class="adr-record" id="{{ record.id | slugify }}">
+    <summary class="adr-summary">
+      <span class="adr-number">{{ record.id | escape }}</span>
+      <span class="adr-title">{{ record.title | escape }}</span>
+      <span class="adr-decision">{{ record.decision | escape }}</span>
+      <span class="adr-toggle" aria-hidden="true"><span class="adr-expand">Read reasoning &amp; tradeoffs</span><span class="adr-collapse">Hide details</span></span>
+    </summary>
+    <div class="adr-body">
+      <h4>Context</h4>
+      {{ record.context | markdownify }}
+      {% if record.drivers %}<h4>Decision drivers</h4>
+      {{ record.drivers | markdownify }}{% endif %}
+      <h4>Alternatives</h4>
+      {{ record.alternatives | markdownify }}
+      <h4>Decision &amp; rationale</h4>
+      {{ record.rationale | markdownify }}
+      <h4>Benefits &amp; tradeoffs</h4>
+      {{ record.consequences | markdownify }}
+      <h4>Implementation</h4>
+      <ul>{% for source in record.sources %}<li><a href="{{ adr_source_base | append: source.path | escape }}">{{ source.label | escape }} &nearr;</a></li>{% endfor %}</ul>
+    </div>
+  </details>
+  {% endfor %}
+</div>

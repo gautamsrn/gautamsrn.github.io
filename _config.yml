@@ -1,0 +1,56 @@
+title: Gautam Sreenarayanan Nair
+author: Gautam Sreenarayanan Nair
+description: Gautam Sreenarayanan Nair works at the intersection of mechanical engineering, software, robotics, data, and AI systems to improve products, processes, and decisions.
+url: https://gautamsrn.github.io
+baseurl: ""
+markdown: kramdown
+permalink: /blog/:year/:month/:day/:title/
+timezone: America/New_York
+# Public Cloudflare installation token, not an account credential. Empty disables analytics.
+analytics:
+  cloudflare_token: "fc0b1dbbd4f14430a6af5b79defe0611"
+collections:
+  projects:
+    output: true
+    permalink: /projects/:name/
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+  - scope:
+      path: ""
+      type: projects
+    values:
+      layout: project
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+exclude:
+  - README.md
+  - AGENTS.md
+  - docs
+  - tests
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .preview
+  - reference-materials
+  - preview.ps1
+  - Resume_Gautam_Sreenarayanan_Nair.pdf
+  - gautamsn_project4.pdf
+  - .env
+  - .env.*
+  - .aws
+  - .ssh
+  - .codex
+  - .agents
+  - .vscode
+  - .idea
+  - '*.pem'
+  - '*.key'
+  - '*.p12'
+  - '*.pfx'
+  - '*.log'

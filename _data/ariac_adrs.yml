@@ -1,0 +1,152 @@
+repository: https://github.com/gautamsrn/ariac_group-2
+branch: final-release
+revision: 6df4c11f31bc910ce5e001e4f88bae2edb32626b
+records:
+  - id: ADR-001
+    title: Multithreaded ROS 2 C++ control architecture
+    decision: Run task execution and workcell feedback in separate callback groups within a multithreaded C++ executor.
+    context: >-
+      The controller performs motion execution, readiness waits, and service
+      requests while receiving orders, camera detections, gripper state, and AGV
+      updates. Some task routines wait for information that arrives through those
+      subscriptions, making the callback execution model an architectural dependency.
+    drivers: |
+      - Keep feedback processing available while a task callback is occupied.
+      - Serialize related callbacks without serializing the entire controller.
+      - Integrate task orchestration with MoveIt's C++ planning interface.
+    alternatives: |
+      - **Single-threaded executor:** Simple ordering, but a blocking task callback can prevent the feedback callbacks needed for that task from running.
+      - **One callback group for all work:** Multiple executor threads alone do not provide concurrency when all callbacks share one mutually exclusive group.
+      - **Multithreaded executor with separate groups (chosen):** Separate task execution, general subscriptions, and gripper feedback into independently schedulable groups.
+    rationale: >-
+      The C++ entry point constructs a MultiThreadedExecutor. The controller
+      assigns camera, order, competition-state, and AGV subscriptions to one
+      mutually exclusive group; gripper feedback and the main task timer each
+      get their own mutually exclusive group. The executor can therefore process
+      feedback in one group while a task routine in another waits on motion or
+      a service response. Group boundaries define where execution is serialized.
+    consequences: |
+      - **Benefit:** Task execution and feedback handling can progress concurrently across groups.
+      - **Benefit:** The task timer remains serialized within its group, rather than starting overlapping instances of the main workflow.
+      - **Tradeoff:** Shared queues and sensor state need coordination across groups; callback-group exclusivity only applies within a group.
+      - **Tradeoff:** Camera, order, and AGV callbacks still share a group, so a long callback in that group can delay its peers.
+    sources:
+      - label: C++ executable build target
+        path: final_group_2/CMakeLists.txt#L44-L49
+      - label: Multithreaded executor entry point
+        path: final_group_2/src/main_cpp.cpp#L8-L15
+      - label: Subscription and gripper callback groups
+        path: final_group_2/src/competition_control_system.cpp#L16-L94
+      - label: Separate task-timer callback group
+        path: final_group_2/src/competition_control_system.cpp#L105-L111
+
+  - id: ADR-002
+    title: Schedule priority work at task-stage boundaries
+    decision: Represent kitting as tray, parts, AGV, and submission stages, with priority selection between task-routine calls.
+    context: >-
+      A manufacturing order spans several physical operations, and urgent orders
+      can arrive while another order is underway. Priority handling needs a defined
+      place in the execution workflow, together with a representation of task progress.
+    drivers: |
+      - Give the orchestration loop opportunities to select urgent work.
+      - Make the phases of fulfillment explicit.
+      - Distinguish workflow-level scheduling from cancellation of robot motion.
+    alternatives: |
+      - **Complete an entire order before selecting another:** Straightforward sequencing, with urgent work waiting for the active order to finish.
+      - **Interrupt motion immediately:** Requires trajectory cancellation and reconciliation of the robot, gripper, and partially completed task.
+      - **Select work between task stages (chosen):** Return control to the order-selection loop after a task stage completes.
+    rationale: >-
+      The controller classifies incoming orders into high_orders_ and low_orders_.
+      An order_object contains tray, part, agv, and submit flags, and
+      complete_kitting_task advances the active order through those phases.
+      The outer loop checks for high-priority work before the next routine call.
+      This places priority selection in task orchestration and gives each physical
+      phase an explicit completion boundary.
+    consequences: |
+      - **Benefit:** Priority affects which task is selected for execution, beyond labeling incoming messages.
+      - **Benefit:** Tray preparation, part handling, transport, and submission have distinct progress states.
+      - **Tradeoff:** A stage can process several parts or wait for transport, so priority response depends on the duration of the active stage.
+      - **Tradeoff:** Resuming switched work requires consistent ownership of its progress; in-memory flags are not durable recovery state.
+    sources:
+      - label: Task progress flags and priority queues
+        path: final_group_2/include/competition_control_system_interface.hpp#L165-L174
+      - label: Classify incoming orders
+        path: final_group_2/src/competition_control_system.cpp#L269-L279
+      - label: Order selection between task calls
+        path: final_group_2/src/competition_control_system.cpp#L1100-L1157
+      - label: Staged kitting execution
+        path: final_group_2/src/competition_control_system.cpp#L1181-L1308
+
+  - id: ADR-003
+    title: Combine joint planning with Cartesian manipulation paths
+    decision: Use MoveIt joint-target planning for repositioning and Cartesian waypoints for local approach, pickup, and retreat.
+    context: >-
+      Moving between bins and AGVs is a different planning problem from lowering
+      a gripper onto an object or lifting it clear of a tray. A useful motion layer
+      needs both configuration-level positioning and control over the end
+      effector's local path.
+    drivers: |
+      - Reuse the same motion layer across tray and part handling.
+      - Control approach and retreat geometry near objects.
+      - Apply velocity and acceleration scaling to generated trajectories.
+    alternatives: |
+      - **Joint targets for every movement:** One planning approach, with less direct control over the end effector's local approach path.
+      - **Cartesian waypoints for every movement:** Explicit local geometry, but a long Cartesian route may be unsuitable or only partially achievable.
+      - **Combine both planning modes (chosen):** Use joint targets for repositioning and Cartesian waypoints for manipulation near an object.
+    rationale: >-
+      move_to_target plans and executes a MoveGroupInterface joint target.
+      move_through_waypoints computes a Cartesian trajectory, checks its path
+      fraction, and retimes it with velocity and acceleration scaling before
+      execution. Pick routines combine rail and shoulder joint targets with
+      approach, grasp, and lift waypoints. This separates reusable motion primitives
+      from the task-specific poses supplied by the controller.
+    consequences: |
+      - **Benefit:** The motion primitive matches the geometric needs of each task phase.
+      - **Benefit:** Tray and part routines share planning, execution, and trajectory-retiming code.
+      - **Tradeoff:** Cartesian feasibility depends on the waypoints and current robot configuration.
+      - **Tradeoff:** The implementation rejects path fractions below 0.9; accepting a partial path still requires validating that the intended task pose is reached.
+    sources:
+      - label: Joint planning and Cartesian trajectory execution
+        path: final_group_2/src/competition_control_system.cpp#L595-L633
+      - label: Combine joint targets with pickup waypoints
+        path: final_group_2/src/competition_control_system.cpp#L951-L984
+      - label: Tray approach and lift waypoints
+        path: final_group_2/src/competition_control_system.cpp#L794-L837
+
+  - id: ADR-004
+    title: Resolve manipulation targets in a shared world frame
+    decision: Compose camera-relative detections with sensor poses and use TF transforms to derive pickup and placement targets.
+    context: >-
+      The order describes a part, an AGV, and a tray quadrant. Cameras report
+      detections relative to their sensors, while motion planning needs consistent
+      target poses. Embedding absolute pickup and drop coordinates in each task
+      would couple order logic to one particular object arrangement.
+    drivers: |
+      - Reuse manipulation logic across the left and right bins and different AGVs.
+      - Keep task requirements separate from frame conversion.
+      - Preserve the relationship between a destination tray and its quadrant offsets.
+    alternatives: |
+      - **Fixed world coordinates per task:** Simple for one scene, with pickup and placement logic tied to predetermined object positions.
+      - **Separate coordinate calculations in each task:** Flexible, but repeats transform logic and increases the chance of mixing frames.
+      - **Shared pose composition and TF lookup (chosen):** Derive targets from detections and destination frames before constructing motion waypoints.
+    rationale: >-
+      Camera callbacks cache part and tray poses with each sensor pose. The
+      controller matches a requested part by type and color, then composes its
+      camera-relative pose with the sensor pose. For placement, a TF lookup
+      resolves the AGV tray into the world frame, and pose composition applies
+      the requested quadrant offset. Task routines can work from part identity
+      and destination requirements while sharing the frame-conversion helpers.
+    consequences: |
+      - **Benefit:** The same manipulation logic can target parts detected by either bin camera and destinations on different AGVs.
+      - **Benefit:** Frame conversion and destination offsets have a consistent place in the controller.
+      - **Tradeoff:** Valid transforms and current sensor data are prerequisites; stale detections and transform failures need handling.
+      - **Tradeoff:** This controller consumes logical-camera identities and poses; an RGB perception system needs to provide equivalent information at that boundary.
+    sources:
+      - label: Cache detections and sensor poses
+        path: final_group_2/src/competition_control_system.cpp#L307-L360
+      - label: Resolve TF frames into world poses
+        path: final_group_2/src/competition_control_system.cpp#L422-L441
+      - label: Match parts and compose pickup poses
+        path: final_group_2/src/competition_control_system.cpp#L879-L920
+      - label: Compose tray and quadrant placement targets
+        path: final_group_2/src/competition_control_system.cpp#L1039-L1058
